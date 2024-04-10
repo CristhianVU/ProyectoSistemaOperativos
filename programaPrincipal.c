@@ -6,13 +6,14 @@
 #include <sys/types.h>
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
+    if (argc != 4) {
+        printf("Uso: %s <cpu/memoria/disco> <proceso> <PID>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     char* tipo_estadisticas = argv[1];
-    char* pid_str = argv[2];
+    char* es_proceso = argv[2];
+    char* pid_str = argv[3];
 
     int pid = atoi(pid_str);
 
@@ -34,7 +35,13 @@ int main(int argc, char* argv[]) {
         dup2(pipefd[1], STDOUT_FILENO); // Redirigir la salida estándar al pipe
 
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
-            execlp("./rendimientoCPU", "./rendimientoCPU", "proceso", pid_str, NULL);
+            if (strcmp(es_proceso, "cpu")==0)
+            {
+                execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", NULL);
+            }else{
+                execlp("./rendimientoCPU", "./rendimientoCPU", "proceso", pid_str, NULL);
+            }
+            
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
             execlp("./obtener_porcentajes", "./obtener_porcentajes", "memoria", NULL);
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {
