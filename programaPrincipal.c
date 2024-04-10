@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
         dup2(pipefd[1], STDOUT_FILENO); // Redirigir la salida estándar al pipe
 
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
-            execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
+            execlp("./rendimientoCPU", "./rendimientoCPU", "proceso", pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
             execlp("./obtener_porcentajes", "./obtener_porcentajes", "memoria", NULL);
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {

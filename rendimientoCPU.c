@@ -1,4 +1,3 @@
-// obtener_porcentajes.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -61,4 +60,27 @@ double obtener_porcentaje_proceso(int pid) {
     double time_in_seconds = seconds / 100.0;
 
     return (total_time / time_in_seconds) * 100.0;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3 || (strcmp(argv[1], "cpu") != 0 && strcmp(argv[1], "proceso") != 0)) {
+        printf("Uso: %s <cpu|proceso> <PID>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if (strcmp(argv[1], "cpu") == 0) {
+        double porcentaje_total = obtener_porcentaje_total();
+        printf("Porcentaje de utilización total del CPU: %.2f%%\n", porcentaje_total);
+    } else if (strcmp(argv[1], "proceso") == 0) {
+        int pid = atoi(argv[2]);
+        if (pid <= 0) {
+            printf("El PID debe ser un entero positivo.\n");
+            return EXIT_FAILURE;
+        }
+
+        double porcentaje_proceso = obtener_porcentaje_proceso(pid);
+        printf("Porcentaje de utilización para el proceso con PID %d: %.2f%%\n", pid, porcentaje_proceso);
+    }
+
+    return EXIT_SUCCESS;
 }
