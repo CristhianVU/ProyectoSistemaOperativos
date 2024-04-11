@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
             execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
-            execlp("./obtener_porcentajes", "./obtener_porcentajes", "memoria", NULL);
+           execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {
             execlp("./rendimientoDisco", "./rendimientoDisco", "disco", argv[2], NULL);
         } else {
