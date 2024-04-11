@@ -6,15 +6,31 @@
 #include <sys/types.h>
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
+    printf("%s%s%s%s%s%s\n","   ", argv[0], "    ",argv[1],"   ", argv[2]);
+     if (argc > 3 || argc < 2 ) {
+       printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
+      return EXIT_FAILURE;
+   }
 
     char* tipo_estadisticas = argv[1];
-    char* pid_str = argv[2];
 
-    int pid = atoi(pid_str);
+    //char* pid_str = argv[2];
+    //int pid = atoi(pid_str);
+
+    char* pid_str ;
+    int pid ;
+
+    if(argv[2]==NULL){
+
+     pid_str = argv[1];
+    pid = atoi(pid_str);
+
+    }else{
+
+    pid_str = argv[2];
+    pid = atoi(pid_str);
+
+    }
 
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -34,7 +50,7 @@ int main(int argc, char* argv[]) {
         dup2(pipefd[1], STDOUT_FILENO); // Redirigir la salida estándar al pipe
 
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
-            execlp("./rendimientoCPU", "./rendimientoCPU", "proceso", pid_str, NULL);
+            execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
             execlp("./obtener_porcentajes", "./obtener_porcentajes", "memoria", NULL);
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {

@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 
+
+
 #define PROC_STAT "/proc/stat"
 #define PROC_STAT_PID "/proc/%d/stat"
 #define BUFF_SIZE 1024
@@ -46,32 +48,39 @@ double obtener_porcentaje_proceso(int pid) {
     fgets(buffer, BUFF_SIZE, file);
     fclose(file);
 
-    char* token = strtok(buffer, " ");
-    int i;
-    for (i = 0; i < 13; ++i) {
-        token = strtok(NULL, " ");
+    // Extraer utime y stime del buffer
+    unsigned long utime, stime;
+    sscanf(buffer, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*lu %*lu %*lu %lu %lu", &utime, &stime);
+
+    // Obtener el número de ticks del reloj por segundo
+    long ticks_per_second = sysconf(_SC_CLK_TCK);
+    if (ticks_per_second <= 0) {
+        fprintf(stderr, "Error: sysconf(_SC_CLK_TCK) falló\n");
+        exit(EXIT_FAILURE);
     }
 
-    int utime, stime;
-    sscanf(token, "%d %d", &utime, &stime);
+    // Calcular el tiempo total en segundos
+    double total_time_seconds = (utime + stime) / (double)ticks_per_second;
 
-    double total_time = utime + stime;
-    double seconds = sysconf(_SC_CLK_TCK); // Get clock ticks per second
-    double time_in_seconds = seconds / 100.0;
+    // Calcular el porcentaje de uso de CPU
+    double porcentaje = (total_time_seconds * 100.0); // Convertir a porcentaje
 
-    return (total_time / time_in_seconds) * 100.0;
+    return porcentaje;
 }
 
 int main(int argc, char *argv[]) {
+   
+        printf("%s%s%s\n", argv[0], argv[1], argv[2]);
+   
     if (argc != 3 || (strcmp(argv[1], "cpu") != 0 && strcmp(argv[1], "proceso") != 0)) {
         printf("Uso: %s <cpu|proceso> <PID>\n", argv[0]);
         return EXIT_FAILURE;
     }
-
-    if (strcmp(argv[1], "cpu") == 0) {
+       
+    if (strcmp(argv[2], "cpu") == 0) {
         double porcentaje_total = obtener_porcentaje_total();
         printf("Porcentaje de utilización total del CPU: %.2f%%\n", porcentaje_total);
-    } else if (strcmp(argv[1], "proceso") == 0) {
+    } else {
         int pid = atoi(argv[2]);
         if (pid <= 0) {
             printf("El PID debe ser un entero positivo.\n");
