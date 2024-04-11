@@ -132,28 +132,87 @@ fclose(meminfo);
 return memoria_total_kb;
 }
 
+// Función para obtener el porcentaje de utilización de memoria virtual para un PID específico
+void obtener_porcentaje_memoria_virtual_pid(int pid) {
+    char proc_statm_path[BUFF_SIZE];
+    snprintf(proc_statm_path, BUFF_SIZE, PROC_STATM_PID, pid);
+
+    FILE* file = fopen(proc_statm_path, "r");
+    if (!file) {
+        printf("No se pudo abrir el archivo /proc/%d/statm\n", pid);
+        return;
+    }
+
+    unsigned long size;
+    if (fscanf(file, "%*s %lu", &size) != 1) {
+        printf("Error al leer el archivo /proc/%d/statm\n", pid);
+        fclose(file);
+        return;
+    }
+
+    // Convertir el tamaño de páginas a kilobytes
+    double memoria_kb = size * sysconf(_SC_PAGESIZE) / 1024.0;
+
+    // Obtener el nombre del proceso desde /proc/<PID>/stat
+    char proc_stat_path[BUFF_SIZE];
+    snprintf(proc_stat_path, BUFF_SIZE, PROC_STAT_PID, pid);
+    FILE* stat_file = fopen(proc_stat_path, "r");
+    if (!stat_file) {
+        printf("No se pudo abrir el archivo /proc/%d/stat\n", pid);
+        fclose(file);
+        return;
+    }
+
+    char comm[BUFF_SIZE];
+    if (fscanf(stat_file, "%*d %s", comm) != 1) {
+        printf("Error al leer el archivo /proc/%d/stat\n", pid);
+        fclose(stat_file);
+        fclose(file);
+        return;
+    }
+
+    // Calcular el porcentaje de memoria virtual en comparación con la memoria total
+    double memoria_total_kb = obtener_memoria_total();
+    double porcentaje_memoria = (memoria_kb / memoria_total_kb) * 100.0;
+    printf("%d\t%s\t%.2f%%\n", pid, comm, porcentaje_memoria);
+
+    fclose(stat_file);
+    fclose(file);
+}
+
 int main(int argc, char *argv[]) {
-printf("%s%s%s\n", argv[0], argv[1], argv[2]);
 
-if (argc < 2 || argc > 3 || (strcmp(argv[1], "memoria") != 0)) {
-printf("Uso: %s memoria [-r]\n", argv[0]);
-return EXIT_FAILURE;
+    printf("%s %s %s %s\n", argv[0], argv[1], argv[2], argv[3]);
+
+    if (argc < 2 || argc > 4 || (strcmp(argv[1], "memoria") != 0)) {
+        printf("Uso: %s memoria [-r] [-v PID]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    if (argc == 2 || (argc == 3 && strcmp(argv[2], "-r") == 0)) {
+        // Obtener porcentaje de memoria real para todos los procesos
+        obtener_porcentaje_memoria_real();
+    } else if (argc == 4 && strcmp(argv[2], "-v") == 0 ) {
+        // Obtener porcentaje de memoria virtual para el PID especificado
+        int pid = atoi(argv[3]);
+        if (pid <= 0) {
+            printf("El PID debe ser un número entero positivo.\n");
+            return EXIT_FAILURE;
+        }
+        // Llamar a la función para obtener el porcentaje de memoria virtual para el PID especificado
+        printf("Porcentaje de Memoria Virtual para el PID %d:\n", pid);
+        if(strcmp(argv[2], "-v") == 0){
+            obtener_porcentaje_memoria_virtual_pid(pid);
+        }
+    } else if (strcmp(argv[2], "memoria") == 0){
+            obtener_porcentaje_memoria_virtual();
+        }
+        else {
+        printf("Uso: %s memoria [-r] [-v PID]\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
-
-if ((strcmp(argv[2], "memoria") == 0)) {
-// Obtener porcentaje de memoria virtual para todos los procesos
-obtener_porcentaje_memoria_virtual();
-} else if (argc == 3 && strcmp(argv[2], "-r") == 0) {
-// Obtener porcentaje de memoria real para todos los procesos
-obtener_porcentaje_memoria_real();
-} else {
-printf("Uso: %s memoria [-r]\n", argv[0]);
-return EXIT_FAILURE;
-}
-
-return EXIT_SUCCESS;
-}
-
-
 
 

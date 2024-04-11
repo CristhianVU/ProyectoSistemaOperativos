@@ -6,8 +6,8 @@
 #include <sys/types.h>
 
 int main(int argc, char* argv[]) {
-    printf("%s%s%s%s%s%s\n","   ", argv[0], "    ",argv[1],"   ", argv[2]);
-     if (argc > 3 || argc < 2 ) {
+    printf("%s %s %s %s\n", argv[0], argv[1],argv[2], argv[3]);
+    if (argc > 4 || argc < 2 ) {
        printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
       return EXIT_FAILURE;
    }
@@ -52,7 +52,11 @@ int main(int argc, char* argv[]) {
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
             execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
-           execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, NULL);
+           if(argv[2]==NULL){
+            execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, NULL);
+           }else{
+            execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, argv[3], NULL);
+           }
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {
             execlp("./rendimientoDisco", "./rendimientoDisco", "disco", argv[2], NULL);
         } else {
