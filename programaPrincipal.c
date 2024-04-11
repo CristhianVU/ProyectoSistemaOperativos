@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
             execlp("./obtener_porcentajes", "./obtener_porcentajes", "memoria", NULL);
         } else if (strcmp(tipo_estadisticas, "disco") == 0) {
-            execlp("./obtener_porcentajes", "./obtener_porcentajes", "disco", NULL);
+            execlp("./rendimientoDisco", "./rendimientoDisco", "disco", argv[2], NULL);
         } else {
             printf("Tipo de estadísticas no válido: %s\n", tipo_estadisticas);
             exit(EXIT_FAILURE);
