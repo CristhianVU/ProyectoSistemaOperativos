@@ -14,4 +14,7 @@ Casos de uso
 ./programaPrincipal disco -tu
 ./programaPrincipal disco -tl
 
+Link del repositorio:
+https://github.com/CristhianVU/ProyectoSistemaOperativos.git
+
 
