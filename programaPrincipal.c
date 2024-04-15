@@ -2,70 +2,73 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/wait.h>
+#include <sys/types.h>
 
-#define BUFFER_SIZE 256
+int main(int argc, char* argv[]) {
+    if (argc > 4 || argc < 2 ) {
+       printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
+      return EXIT_FAILURE;
+   }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Uso: %s [cpu/memoria/disco]\n", argv[0]);
-        return 1;
+    char* tipo_estadisticas = argv[1];
+
+    char* pid_str ;
+    int pid ;
+
+    if(argv[2]==NULL){
+
+     pid_str = argv[1];
+    pid = atoi(pid_str);
+
+    }else{
+
+    pid_str = argv[2];
+    pid = atoi(pid_str);
+
     }
 
     int pipefd[2];
-    pid_t pid;
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_read;
-
     if (pipe(pipefd) == -1) {
-        perror("Error creando el pipe");
-        return 1;
+        perror("Error al crear el pipe");
+        return EXIT_FAILURE;
     }
 
-    pid = fork();
+    pid_t child_pid = fork();
+    if (child_pid == -1) {
+        perror("Error en fork");
+        return EXIT_FAILURE;
+    }
 
-    if (pid < 0) {
-        perror("Error al crear el proceso hijo");
-        return 1;
-    } else if (pid == 0) {  // Proceso hijo
-        close(pipefd[0]);  // Cerrar el extremo de lectura del pipe
+    if (child_pid == 0) { 
+        close(pipefd[0]); 
 
-        // Redirigir la salida estándar al extremo de escritura del pipe
-        if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
-            perror("Error en dup2");
-            return 1;
-        }
-
-        close(pipefd[1]);  // Cerrar el extremo de escritura del pipe
-
-        // Ejecutar el programa correspondiente al argumento pasado
-        if (strcmp(argv[1], "cpu") == 0) {
-            execlp("./rendimientoCPU", "./rendimientoCPU", NULL);
-        } else if (strcmp(argv[1], "memoria") == 0) {
-            execlp("./rendimientoMemoria", "./rendimientoMemoria", NULL);
-        } else if (strcmp(argv[1], "disco") == 0) {
-            execlp("./rendimientoDisco", "./rendmientoDisco", NULL);
+        dup2(pipefd[1], STDOUT_FILENO); 
+        if (strcmp(tipo_estadisticas, "cpu") == 0) {
+            execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
+        } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
+           if(argv[2]==NULL){
+            execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, NULL);
+           }else{
+            execlp("./rendimientoMemoria", "./rendimientoMemoria", "memoria",pid_str, argv[3], NULL);
+           }
+        } else if (strcmp(tipo_estadisticas, "disco") == 0) {
+            execlp("./rendimientoDisco", "./rendimientoDisco", "disco", argv[2], NULL);
         } else {
-            printf("Recurso no válido. Use 'cpu', 'memoria' o 'disco'.\n");
-            return 1;
+            printf("Tipo de estadísticas no válido: %s\n", tipo_estadisticas);
+            exit(EXIT_FAILURE);
         }
-    } else {  // Proceso padre
-        close(pipefd[1]);  // Cerrar el extremo de escritura del pipe
+    } else { 
+        close(pipefd[1]); 
 
-        // Leer la salida del hijo del extremo de lectura del pipe
-        while ((bytes_read = read(pipefd[0], buffer, BUFFER_SIZE - 1)) > 0) {
-            buffer[bytes_read] = '\0';  // Añadir el terminador nulo
-            printf("%s", buffer);
-        }
-
-        if (bytes_read == -1) {
-            perror("Error leyendo desde el pipe");
-            return 1;
+        printf("Estadísticas para %s con PID %d:\n", tipo_estadisticas, pid);
+        char buffer[1024];
+        ssize_t bytes_read;
+        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer))) > 0) {
+            write(STDOUT_FILENO, buffer, bytes_read);
         }
 
-        close(pipefd[0]);  // Cerrar el extremo de lectura del pipe
-        wait(NULL);  // Esperar a que el hijo termine
+        close(pipefd[0]); 
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
