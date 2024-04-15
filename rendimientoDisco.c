@@ -4,8 +4,6 @@
 
 #define BUFF_SIZE 1024
 
-// Función para obtener el porcentaje total de utilización del disco en MiB
-// Función para obtener el porcentaje total de utilización del disco en MiB
 double obtener_porcentaje_total() {
     FILE* pipe = popen("df --output=used,size / | tail -n 1", "r");
     if (!pipe) {
@@ -23,7 +21,6 @@ double obtener_porcentaje_total() {
     return espacio_en_mib;
 }
 
-// Función para obtener el porcentaje total de espacio libre en MiB
 double obtener_porcentaje_libre() {
     FILE* pipe = popen("df --output=avail / | tail -n 1", "r");
     if (!pipe) {

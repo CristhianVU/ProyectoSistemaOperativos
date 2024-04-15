@@ -9,7 +9,6 @@
 #define PROC_STAT_PID "/proc/%d/stat"
 #define BUFF_SIZE 1024
 
-// Función para obtener el porcentaje de utilización total del CPU
 double obtener_porcentaje_total() {
     FILE* file = fopen(PROC_STAT, "r");
     if (!file) {
@@ -22,7 +21,7 @@ double obtener_porcentaje_total() {
     fclose(file);
 
     char* token = strtok(buffer, " ");
-    token = strtok(NULL, " "); // Ignorar "cpu"
+    token = strtok(NULL, " "); 
     double user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice;
 
     sscanf(token, "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal, &guest, &guest_nice);
@@ -33,7 +32,6 @@ double obtener_porcentaje_total() {
     return (total_non_idle / total) * 100.0;
 }
 
-// Función para obtener el porcentaje de utilización para un proceso específico
 double obtener_porcentaje_proceso(int pid) {
     char proc_stat_path[BUFF_SIZE];
     snprintf(proc_stat_path, BUFF_SIZE, PROC_STAT_PID, pid);
@@ -48,29 +46,24 @@ double obtener_porcentaje_proceso(int pid) {
     fgets(buffer, BUFF_SIZE, file);
     fclose(file);
 
-    // Extraer utime y stime del buffer
     unsigned long utime, stime;
     sscanf(buffer, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*lu %*lu %*lu %lu %lu", &utime, &stime);
 
-    // Obtener el número de ticks del reloj por segundo
     long ticks_per_second = sysconf(_SC_CLK_TCK);
     if (ticks_per_second <= 0) {
         fprintf(stderr, "Error: sysconf(_SC_CLK_TCK) falló\n");
         exit(EXIT_FAILURE);
     }
 
-    // Calcular el tiempo total en segundos
     double total_time_seconds = (utime + stime) / (double)ticks_per_second;
 
-    // Calcular el porcentaje de uso de CPU
-    double porcentaje = (total_time_seconds * 100.0); // Convertir a porcentaje
+    double porcentaje = (total_time_seconds * 100.0); 
 
     return porcentaje;
 }
 
 int main(int argc, char *argv[]) {
    
-        printf("%s%s%s\n", argv[0], argv[1], argv[2]);
    
     if (argc != 3 || (strcmp(argv[1], "cpu") != 0 && strcmp(argv[1], "proceso") != 0)) {
         printf("Uso: %s <cpu|proceso> <PID>\n", argv[0]);

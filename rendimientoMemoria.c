@@ -2,17 +2,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <dirent.h> // Para trabajar con directorios en Linux
+#include <dirent.h> 
 
 #define PROC_STAT "/proc/stat"
 #define PROC_STAT_PID "/proc/%d/stat"
 #define PROC_STATM_PID "/proc/%d/statm"
 #define BUFF_SIZE 1024
 
-// Declaración de la función auxiliar para obtener la memoria total del sistema en kilobytes
+
 double obtener_memoria_total();
 
-// Función para obtener el porcentaje de utilización de memoria virtual para todos los procesos
 void obtener_porcentaje_memoria_virtual() {
 DIR* proc_dir = opendir("/proc");
 if (!proc_dir) {
@@ -32,20 +31,17 @@ snprintf(proc_statm_path, BUFF_SIZE, PROC_STATM_PID, pid);
 FILE* file = fopen(proc_statm_path, "r");
 if (file) {
 unsigned long size;
-fscanf(file, "%*s %lu", &size); // Leemos el tamaño de la memoria residente (RSS)
+fscanf(file, "%*s %lu", &size); 
 
-// Convertir el tamaño de páginas a kilobytes
 double memoria_kb = size * sysconf(_SC_PAGESIZE) / 1024.0;
 
-// Obtener el nombre del proceso desde /proc/<PID>/stat
 char proc_stat_path[BUFF_SIZE];
 snprintf(proc_stat_path, BUFF_SIZE, PROC_STAT_PID, pid);
 FILE* stat_file = fopen(proc_stat_path, "r");
 if (stat_file) {
 char comm[BUFF_SIZE];
-fscanf(stat_file, "%*d %s", comm); // Leer el nombre del proceso
+fscanf(stat_file, "%*d %s", comm); 
 
-// Calcular el porcentaje de memoria virtual en comparación con la memoria total
 double memoria_total_kb = obtener_memoria_total();
 double porcentaje_memoria = (memoria_kb / memoria_total_kb) * 100.0;
 printf("%d\t%s\t%.2f%%\n", pid, comm, porcentaje_memoria);
@@ -60,7 +56,7 @@ fclose(file);
 closedir(proc_dir);
 }
 
-// Función para obtener el porcentaje de utilización de memoria real para todos los procesos
+
 void obtener_porcentaje_memoria_real() {
 DIR* proc_dir = opendir("/proc");
 if (!proc_dir) {
@@ -80,20 +76,19 @@ snprintf(proc_statm_path, BUFF_SIZE, PROC_STATM_PID, pid);
 FILE* file = fopen(proc_statm_path, "r");
 if (file) {
 unsigned long resident_pages;
-fscanf(file, "%lu", &resident_pages); // Leemos el número de páginas residentes (RSS)
+fscanf(file, "%lu", &resident_pages); 
 
-// Convertir el tamaño de páginas a kilobytes
 double memoria_kb = resident_pages * sysconf(_SC_PAGESIZE) / 1024.0;
 
-// Obtener el nombre del proceso desde /proc/<PID>/stat
+
 char proc_stat_path[BUFF_SIZE];
 snprintf(proc_stat_path, BUFF_SIZE, PROC_STAT_PID, pid);
 FILE* stat_file = fopen(proc_stat_path, "r");
 if (stat_file) {
 char comm[BUFF_SIZE];
-fscanf(stat_file, "%*d %s", comm); // Leer el nombre del proceso
+fscanf(stat_file, "%*d %s", comm); 
 
-// Calcular el porcentaje de memoria real en comparación con la memoria total
+
 double memoria_total_kb = obtener_memoria_total();
 double porcentaje_memoria = (memoria_kb / memoria_total_kb) * 100.0;
 printf("%d\t%s\t%.2f%%\n", pid, comm, porcentaje_memoria);
@@ -108,7 +103,7 @@ fclose(file);
 closedir(proc_dir);
 }
 
-// Función auxiliar para obtener la memoria total del sistema en kilobytes
+
 double obtener_memoria_total() {
 FILE* meminfo = fopen("/proc/meminfo", "r");
 if (!meminfo) {
@@ -123,7 +118,7 @@ while (fgets(buffer, BUFF_SIZE, meminfo)) {
 if (strncmp(buffer, "MemTotal:", 9) == 0) {
 unsigned long memoria_total;
 sscanf(buffer + 9, "%lu", &memoria_total);
-memoria_total_kb = memoria_total / 1024.0; // Convertir a kilobytes
+memoria_total_kb = memoria_total / 1024.0; 
 break;
 }
 }
@@ -132,7 +127,7 @@ fclose(meminfo);
 return memoria_total_kb;
 }
 
-// Función para obtener el porcentaje de utilización de memoria virtual para un PID específico
+
 void obtener_porcentaje_memoria_virtual_pid(int pid) {
     char proc_statm_path[BUFF_SIZE];
     snprintf(proc_statm_path, BUFF_SIZE, PROC_STATM_PID, pid);
@@ -150,10 +145,10 @@ void obtener_porcentaje_memoria_virtual_pid(int pid) {
         return;
     }
 
-    // Convertir el tamaño de páginas a kilobytes
+
     double memoria_kb = size * sysconf(_SC_PAGESIZE) / 1024.0;
 
-    // Obtener el nombre del proceso desde /proc/<PID>/stat
+ 
     char proc_stat_path[BUFF_SIZE];
     snprintf(proc_stat_path, BUFF_SIZE, PROC_STAT_PID, pid);
     FILE* stat_file = fopen(proc_stat_path, "r");
@@ -171,7 +166,7 @@ void obtener_porcentaje_memoria_virtual_pid(int pid) {
         return;
     }
 
-    // Calcular el porcentaje de memoria virtual en comparación con la memoria total
+  
     double memoria_total_kb = obtener_memoria_total();
     double porcentaje_memoria = (memoria_kb / memoria_total_kb) * 100.0;
     printf("%d\t%s\t%.2f%%\n", pid, comm, porcentaje_memoria);
@@ -182,7 +177,6 @@ void obtener_porcentaje_memoria_virtual_pid(int pid) {
 
 int main(int argc, char *argv[]) {
 
-    printf("%s %s %s %s\n", argv[0], argv[1], argv[2], argv[3]);
 
     if (argc < 2 || argc > 4 || (strcmp(argv[1], "memoria") != 0)) {
         printf("Uso: %s memoria [-r] [-v PID]\n", argv[0]);
@@ -190,16 +184,16 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc == 2 || (argc == 3 && strcmp(argv[2], "-r") == 0)) {
-        // Obtener porcentaje de memoria real para todos los procesos
+
         obtener_porcentaje_memoria_real();
     } else if (argc == 4 && strcmp(argv[2], "-v") == 0 ) {
-        // Obtener porcentaje de memoria virtual para el PID especificado
+  
         int pid = atoi(argv[3]);
         if (pid <= 0) {
             printf("El PID debe ser un número entero positivo.\n");
             return EXIT_FAILURE;
         }
-        // Llamar a la función para obtener el porcentaje de memoria virtual para el PID especificado
+      
         printf("Porcentaje de Memoria Virtual para el PID %d:\n", pid);
         if(strcmp(argv[2], "-v") == 0){
             obtener_porcentaje_memoria_virtual_pid(pid);

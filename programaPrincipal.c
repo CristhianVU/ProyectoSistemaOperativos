@@ -1,4 +1,3 @@
-// main.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,16 +5,12 @@
 #include <sys/types.h>
 
 int main(int argc, char* argv[]) {
-    printf("%s %s %s %s\n", argv[0], argv[1],argv[2], argv[3]);
     if (argc > 4 || argc < 2 ) {
        printf("Uso: %s <cpu/memoria/disco> <PID>\n", argv[0]);
       return EXIT_FAILURE;
    }
 
     char* tipo_estadisticas = argv[1];
-
-    //char* pid_str = argv[2];
-    //int pid = atoi(pid_str);
 
     char* pid_str ;
     int pid ;
@@ -44,11 +39,10 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (child_pid == 0) { // Proceso hijo
-        close(pipefd[0]); // Cerramos la parte de lectura del pipe en el proceso hijo
+    if (child_pid == 0) { 
+        close(pipefd[0]); 
 
-        dup2(pipefd[1], STDOUT_FILENO); // Redirigir la salida estándar al pipe
-
+        dup2(pipefd[1], STDOUT_FILENO); 
         if (strcmp(tipo_estadisticas, "cpu") == 0) {
             execlp("./rendimientoCPU", "./rendimientoCPU", "cpu", pid_str, NULL);
         } else if (strcmp(tipo_estadisticas, "memoria") == 0) {
@@ -63,8 +57,8 @@ int main(int argc, char* argv[]) {
             printf("Tipo de estadísticas no válido: %s\n", tipo_estadisticas);
             exit(EXIT_FAILURE);
         }
-    } else { // Proceso padre
-        close(pipefd[1]); // Cerramos la parte de escritura del pipe en el proceso padre
+    } else { 
+        close(pipefd[1]); 
 
         printf("Estadísticas para %s con PID %d:\n", tipo_estadisticas, pid);
         char buffer[1024];
@@ -73,7 +67,7 @@ int main(int argc, char* argv[]) {
             write(STDOUT_FILENO, buffer, bytes_read);
         }
 
-        close(pipefd[0]); // Cerramos la parte de lectura del pipe en el proceso padre
+        close(pipefd[0]); 
     }
 
     return EXIT_SUCCESS;
